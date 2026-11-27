@@ -72,7 +72,6 @@ export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
         return () => observer.disconnect();
     }, [loadMore]);
 
-    // Empty state matching Image 1
     if (projects.length === 0 && !isLoading) {
         return (
             <div className="w-full rounded-[32px] border border-dashed border-border/60 bg-card/50 p-8 sm:p-14 flex flex-col items-center justify-center text-center space-y-3 min-w-0">
@@ -89,8 +88,8 @@ export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
         );
     }
 
-    // 2-column layout for completed horizontal cards, 3-4 columns for active cards
-    const isCompletedList = projects.length > 0 && projects.every(p => p.status === 'COMPLETED');
+    const currentStatusInUrl = new URLSearchParams(searchParams).get('status');
+    const isCompletedList = currentStatusInUrl === 'COMPLETED' || (projects.length > 0 && projects.every(p => p.status === 'COMPLETED'));
 
     return (
         <div className="w-full min-w-0">
