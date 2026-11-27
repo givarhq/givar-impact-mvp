@@ -78,7 +78,7 @@ export const ProjectCard = memo(function ProjectCard({
                 alt={project.title}
                 fill
                 sizes="(max-width: 640px) 100px, 170px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -128,7 +128,7 @@ export const ProjectCard = memo(function ProjectCard({
               alt={project.title}
               fill
               sizes="(max-width: 768px) 110px, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -146,6 +146,13 @@ export const ProjectCard = memo(function ProjectCard({
             <Target className="h-3 w-3 text-primary" />
             <span className="text-[10px] font-bold truncate max-w-[140px]">{displayCategory}</span>
           </div>
+
+          {isPaused && (
+            <div className="absolute top-2 left-2 sm:top-3 sm:right-3 sm:left-auto flex items-center gap-1 bg-amber-500/95 backdrop-blur-md text-white px-2.5 py-1 rounded-full shadow-sm z-10">
+              <Clock className="h-3 w-3 shrink-0" />
+              <span className="text-[10px] font-bold">Paused</span>
+            </div>
+          )}
         </div>
 
         <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between min-w-0 gap-2 sm:gap-3">
@@ -163,12 +170,6 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 gap-2 sm:gap-3">
-            {isPaused && (
-              <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full mb-1 w-fit">
-                <Clock className="h-3 w-3" /> Paused
-              </div>
-            )}
-
             {isFundedState && (
               <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
                 Goal Reached
