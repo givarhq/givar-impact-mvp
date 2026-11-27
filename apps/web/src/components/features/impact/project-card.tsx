@@ -44,6 +44,7 @@ export const ProjectCard = memo(function ProjectCard({
   } = phaseMath;
 
   const isActuallyCompleted = isCompleted || project.status === 'COMPLETED';
+  const isFullyFundedUnderway = project.status === 'FUNDED' || (isFundedState && !isActuallyCompleted);
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
@@ -67,7 +68,7 @@ export const ProjectCard = memo(function ProjectCard({
     ? `${project.categoryName} • ${project.subcategoryName}`
     : (project.categoryName || 'Active cause');
 
-  if (isActuallyCompleted) {
+  if (isActuallyCompleted || isFullyFundedUnderway) {
     return (
       <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
         <Card className="group flex flex-row rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none p-3 sm:p-4 gap-3 sm:gap-4">
@@ -89,9 +90,15 @@ export const ProjectCard = memo(function ProjectCard({
 
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1 sm:mb-1.5 w-fit">
-                Completed
-              </span>
+              {isActuallyCompleted ? (
+                <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1 sm:mb-1.5 w-fit">
+                  Completed
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-500/10 text-blue-600 mb-1 sm:mb-1.5 w-fit">
+                  Funded • In execution
+                </span>
+              )}
               <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                 {project.title}
               </h3>
@@ -107,7 +114,7 @@ export const ProjectCard = memo(function ProjectCard({
                 <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" /> {project.location || 'Global'}</span>
               </div>
               <span className="text-primary font-bold text-[11px] sm:text-xs flex items-center gap-1 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
-                View outcome <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                {isActuallyCompleted ? 'View outcome' : 'Track progress'} <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </span>
             </div>
           </div>
@@ -170,12 +177,6 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 gap-2 sm:gap-3">
-            {isFundedState && (
-              <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
-                Goal Reached
-              </div>
-            )}
-
             <div className="flex justify-between items-end gap-3 min-w-0">
               <div className="space-y-1.5 flex-1 min-w-0">
                 <div className="flex justify-between items-end text-xs font-bold min-w-0">

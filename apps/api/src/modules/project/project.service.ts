@@ -82,7 +82,7 @@ export class ProjectService {
     const where: Prisma.ProjectWhereInput = {
       isActive: true,
       ...(status === ProjectStatus.COMPLETED
-        ? { status: ProjectStatus.COMPLETED }
+        ? { status: { in: [ProjectStatus.COMPLETED, ProjectStatus.FUNDED] } }
         : status === ProjectStatus.PAUSED
           ? { status: ProjectStatus.PAUSED }
           : { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.PAUSED] } }),

@@ -89,7 +89,9 @@ export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
     }
 
     const currentStatusInUrl = new URLSearchParams(searchParams).get('status');
-    const isCompletedList = currentStatusInUrl === 'COMPLETED' || (projects.length > 0 && projects.every(p => p.status === 'COMPLETED'));
+    const isCompletedList = currentStatusInUrl === 'COMPLETED' || (
+        projects.length > 0 && projects.every(p => p.status === 'COMPLETED' || p.status === 'FUNDED')
+    );
 
     return (
         <div className="w-full min-w-0">
